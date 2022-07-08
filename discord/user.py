@@ -18,5 +18,5 @@ class User:
     )
 
     def __init__(self, data: dict):
-        for k, v in data:
-            setattr(self, k, v)
+        for k in data:
+            setattr(self, k, data[k])

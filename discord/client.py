@@ -2,10 +2,12 @@ import asyncio
 import json
 import sys
 import threading
-import websockets
 from typing import Coroutine
-from discord.intents import Intents, gen_number
-from discord.user import User
+import websockets
+
+from .utils import EventEmitter
+from .intents import Intents, gen_number
+from .user import User
 
 
 class Client:
@@ -13,6 +15,7 @@ class Client:
         self.gateway = None
         self.loop = asyncio.get_event_loop()
         self.code = gen_number(intents)
+        self.event_emitter = EventEmitter()
 
     async def connect(self, token: str, intent_code: int):
         async with websockets.connect("wss://gateway.discord.gg/?v=10&encoding=json") as gateway:
@@ -35,8 +38,7 @@ class Client:
             }
             await gateway.send(json.dumps(identify))
             ready = await gateway.recv()
-            if (hasattr(self, 'on_ready')):
-                await getattr(self, 'on_ready')()
+            self.event_emitter.emit('on_ready', False)
             self.user = User(json.loads(ready)['d']['user'])
 
     async def heartbeat(self, gateway: websockets.WebSocketClientProtocol, interval: int):
@@ -50,12 +52,16 @@ class Client:
             ack = await gateway.recv()
 
     def event(self, coro: Coroutine, /) -> Coroutine:
+        """
+        Registers a coroutine to be called when an event is emitted.
+        """
         if not asyncio.iscoroutinefunction(coro):
             raise TypeError('event registered must be a coroutine function')
-
-        setattr(self, coro.__name__, coro)
+        self.event_emitter.add_listener(coro.__name__, coro)
         return coro
 
     def run(self, token: str):
-        self.token = token
-        asyncio.run(self.connect(self.token, self.code))
+        """
+        Run the client.
+        """
+        asyncio.run(self.connect(token, self.code))
