@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
       - run: pip install pdoc
-      - run: pdoc -o docs/ discord
+      - run: pdoc -o docs/ --favicon "https://pictshare.net/e73ask.png" --logo "https://pictshare.net/sco723.png" --footer-text "\"Here's the plan - when someone uses a feature you don't understand, simply shoot them.\" - Tim Peters" discord
 # everything below is copied from the pdoc repo
       - run: tar --directory docs/ -hcf artifact.tar .
       - uses: actions/upload-artifact@v3
