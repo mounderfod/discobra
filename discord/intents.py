@@ -48,5 +48,5 @@ def gen_number(intents: list[Intents]):
     """
     number = 1
     for i in intents:
-        number << i.value()
+        number << i.value
     return number
