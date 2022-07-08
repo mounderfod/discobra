@@ -71,6 +71,10 @@ instance/
 # Sphinx documentation
 docs/_build/
 
+# pdoc
+docs/
+!docs/.nojekyll
+
 # PyCharm
 .idea/
 
