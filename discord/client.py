@@ -5,6 +5,8 @@ import threading
 import websockets
 from typing import Coroutine
 from discord.intents import Intents, gen_number
+from discord.user import User
+
 
 class Client:
     def __init__(self, intents: list[Intents]):
@@ -35,6 +37,7 @@ class Client:
             ready = await gateway.recv()
             if (hasattr(self, 'on_ready')):
                 await getattr(self, 'on_ready')()
+            self.user = User(json.loads(ready)['d']['user'])
 
     async def heartbeat(self, gateway: websockets.WebSocketClientProtocol, interval: int):
         while True:
