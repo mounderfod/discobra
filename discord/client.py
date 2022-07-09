@@ -2,7 +2,7 @@ import asyncio
 import json
 import sys
 import threading
-from typing import Coroutine
+from typing import Optional, Coroutine, Any, Callable
 import websockets
 
 from .utils import EventEmitter
@@ -38,8 +38,30 @@ class Client:
             }
             await gateway.send(json.dumps(identify))
             ready = await gateway.recv()
-            self.event_emitter.emit('on_ready', False)
+            self.event_emitter.emit('on_ready')
             self.user = User(json.loads(ready)['d']['user'])
+    
+    async def send(self, data: dict):
+        """
+        Send data to the gateway.
+        """
+        await self.gateway.send(json.dumps(data))
+    
+    async def recv(self, msg):
+        """
+        Receive data from the gateway.
+        """
+        pass
+
+    async def close(self):
+        """
+        Close the client.
+        """
+        self.loop.stop()
+        await self.gateway.close()
+
+    async def poll_events(self):
+        pass
 
     async def heartbeat(self, gateway: websockets.WebSocketClientProtocol, interval: int):
         while True:
@@ -51,7 +73,7 @@ class Client:
             await gateway.send(json.dumps(heartbeat))
             ack = await gateway.recv()
 
-    def event(self, coro: Coroutine, /) -> Coroutine:
+    def event(self, coro: Optional[Callable[..., Coroutine[Any, Any, Any]]]=None, /) -> Optional[Callable[..., Coroutine[Any, Any, Any]]]:
         """
         Registers a coroutine to be called when an event is emitted.
         """
