@@ -169,6 +169,8 @@ class Client:
                     "browser": "discobra",
                     "device": "discobra"
                 }
+            }
+        }
 
     def event(self, coro: Optional[Callable[..., Coroutine[Any, Any, Any]]]=None, /) -> Optional[Callable[..., Coroutine[Any, Any, Any]]]:
         """
