@@ -8,7 +8,8 @@ import zlib
 import websockets
 
 from .utils import EventEmitter
-from .intents import Intents, gen_number
+from .utils.rest import get
+from .intents import Intents, get_number
 from .user import User
 
 class GatewayEvents(IntEnum):
@@ -26,10 +27,17 @@ class GatewayEvents(IntEnum):
     HEARTBEAT_ACK      = 11
     GUILD_SYNC         = 12
 class Client:
+    _token: str
+
+    @property
+    async def user(self):
+        data = await get(self._token, '/users/@me')
+        return User(data)
+
     def __init__(self, intents: list[Intents]):
         self.gateway = None
         self.loop = asyncio.get_event_loop()
-        self.code: int = gen_number(intents)
+        self.code: int = get_number(intents)
         self.event_emitter = EventEmitter()
         self.buffer = bytearray()
         self.inflator = zlib.decompressobj()
@@ -37,7 +45,7 @@ class Client:
         self.token: str = None
         self.ready: bool = False
 
-    async def connect(self, token: str, intent_code: int):
+    async def connect(self):
         async with websockets.connect("wss://gateway.discord.gg/?v=10&encoding=json") as gateway:
             self.gateway = gateway
             threading.Thread(target=self.loop.run_forever).start()
