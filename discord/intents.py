@@ -15,28 +15,28 @@ class Intents(Enum):
 
     See more at: https://discord.com/developers/docs/topics/gateway#gateway-intents
     """
-    GUILDS = 0
-    GUILD_MEMBERS = 1
-    GUILD_BANS = 2
-    GUILD_EMOJIS_AND_STICKERS = 3
-    GUILD_INTEGRATIONS = 4
-    GUILD_WEBHOOKS = 5
-    GUILD_INVITES = 6
-    GUILD_VOICE_STATES = 7
-    GUILD_PRESENCES = 8
-    GUILD_MESSAGES = 9
-    GUILD_MESSAGE_REACTIONS = 10
-    GUILD_MESSAGE_TYPING = 11
-    DIRECT_MESSAGES = 12
-    DIRECT_MESSAGE_REACTIONS = 13
-    DIRECT_MESSAGE_TYPING = 14
-    MESSAGE_CONTENT = 15
-    GUILD_SCHEDULED_EVENTS = 16
-    AUTO_MODERATION_CONFIGURATION = 20
-    AUTO_MODERATION_EXECUTION = 21
+    GUILDS = 1
+    GUILD_MEMBERS = 2
+    GUILD_BANS = 4
+    GUILD_EMOJIS_AND_STICKERS = 8
+    GUILD_INTEGRATIONS = 16
+    GUILD_WEBHOOKS = 32
+    GUILD_INVITES = 64
+    GUILD_VOICE_STATES = 128
+    GUILD_PRESENCES = 256
+    GUILD_MESSAGES = 512
+    GUILD_MESSAGE_REACTIONS = 1024
+    GUILD_MESSAGE_TYPING = 2048
+    DIRECT_MESSAGES = 4096
+    DIRECT_MESSAGE_REACTIONS = 8192
+    DIRECT_MESSAGE_TYPING = 16384
+    MESSAGE_CONTENT = 32768
+    GUILD_SCHEDULED_EVENTS = 65536
+    AUTO_MODERATION_CONFIGURATION = 1048576
+    AUTO_MODERATION_EXECUTION = 2097152
 
 
-def gen_number(intents: list[Intents]):
+def get_number(intents: list[Intents]):
     """
     Generates the number used to tell the gateway which intents are active.
 
@@ -48,5 +48,15 @@ def gen_number(intents: list[Intents]):
     """
     number = 1
     for i in intents:
-        number << i.value
+        number += i.value
     return number
+
+
+def get_intents(number: int):
+    intents = []
+    while number != 0:
+        for i in Intents:
+            if number >= i.value:
+                intents.append(i)
+                number -= i.value
+    return intents
