@@ -6,15 +6,23 @@ from typing import Optional, Coroutine, Any, Callable
 import websockets
 
 from .utils import EventEmitter
-from .intents import Intents, gen_number
+from .utils.rest import get
+from .intents import Intents, get_number
 from .user import User
 
 
 class Client:
+    _token: str
+
+    @property
+    async def user(self):
+        data = await get(self._token, '/users/@me')
+        return User(data)
+
     def __init__(self, intents: list[Intents]):
         self.gateway = None
         self.loop = asyncio.get_event_loop()
-        self.code = gen_number(intents)
+        self.code = get_number(intents)
         self.event_emitter = EventEmitter()
 
     async def connect(self, token: str, intent_code: int):
@@ -39,7 +47,6 @@ class Client:
             await gateway.send(json.dumps(identify))
             ready = await gateway.recv()
             self.event_emitter.emit('on_ready')
-            self.user = User(json.loads(ready)['d']['user'])
     
     async def send(self, data: dict):
         """
@@ -86,4 +93,5 @@ class Client:
         """
         Run the client.
         """
+        self._token = token
         asyncio.run(self.connect(token, self.code))
