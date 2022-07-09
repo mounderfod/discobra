@@ -5,10 +5,11 @@ import sys
 import threading
 from typing import Optional, Coroutine, Any, Callable
 import zlib
+import aiohttp
 import websockets
 
 from .utils import EventEmitter
-from .utils.rest import get
+from .utils.rest import RESTClient
 from .intents import Intents, get_number
 from .user import User
 
@@ -26,12 +27,13 @@ class GatewayEvents(IntEnum):
     HELLO              = 10
     HEARTBEAT_ACK      = 11
     GUILD_SYNC         = 12
+
 class Client:
     _token: str
 
     @property
     async def user(self):
-        data = await get(self._token, '/users/@me')
+        data = await self.rest_client.get('/users/@me')
         return User(data)
 
     def __init__(self, intents: list[Intents]):
@@ -43,6 +45,10 @@ class Client:
         self.inflator = zlib.decompressobj()
         self.heartbeat_interval: int = None
         self.ready: bool = False
+        self.rest_client = RESTClient(self._token, aiohttp.ClientSession(headers={
+            "Authorization": f"Bot {self._token}",
+            "User-Agent": "DiscordBot (https://github.com/mounderfod/discobra 0.0.1)"
+        }))
 
     async def connect(self):
         async with websockets.connect("wss://gateway.discord.gg/?v=10&encoding=json") as gateway:
@@ -92,7 +98,7 @@ class Client:
         event = msg['t']
 
         if event == 'READY':
-            self.user = User(data['user'])
+            print(data)
 
         self.event_emitter.emit('on_' + event.lower())
 

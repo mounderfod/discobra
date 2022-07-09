@@ -1,15 +1,14 @@
 import aiohttp
-import asyncio
 
 from discord.utils.exceptions import APIException
 
+class RESTClient:
+    def __init__(self, token: str, session: aiohttp.ClientSession):
+        self.token = token
+        self.session = session
 
-async def get(token, url):
-    async with aiohttp.ClientSession(headers={
-        "Authorization": f"Bot {token}",
-        "User-Agent": f"DiscordBot (https://github.com/mounderfod/discobra 0.0.1)"
-    }) as session:
-        async with session.get(url='https://discord.com/api/v10' + url) as r:
+    async def get(self, url: str):
+        async with self.session.get(url='https://discord.com/api/v10' + url) as r:
             data = await r.json()
             match r.status:
                 case 200:
@@ -18,12 +17,8 @@ async def get(token, url):
                     raise APIException(data['message'])
 
 
-async def post(token, url, data):
-    async with aiohttp.ClientSession(headers={
-        "Authorization": f"Bot {token}",
-        "User-Agent": f"DiscordBot (https://github.com/mounderfod/discobra 0.0.1)"
-    }) as session:
-        async with session.post(url='https://discord.com/api/v10' + url, data=data) as r:
+    async def post(self, url: str, data):
+        async with self.session.post(url='https://discord.com/api/v10' + url, data=data) as r:
             data = await r.json()
             match r.status:
                 case 200 | 204:
@@ -32,26 +27,18 @@ async def post(token, url, data):
                     raise APIException(data['message'])
 
 
-async def patch(token, url, data):
-    async with aiohttp.ClientSession(headers={
-        "Authorization": f"Bot {token}",
-        "User-Agent": f"DiscordBot (https://github.com/mounderfod/discobra 0.0.1)"
-    }) as session:
-        async with session.patch(url='https://discord.com/api/v10' + url, data=data) as r:
-            data = await r.json()
-            match r.status:
+    async def patch(self, url, data):
+        async with self.session.patch(url='https://discord.com/api/v10' + url, data=data) as res:
+            data = await res.json()
+            match res.status:
                 case 200 | 204:
                     return data
                 case other:
                     raise APIException(data['message'])
 
 
-async def delete(token, url):
-    async with aiohttp.ClientSession(headers={
-        "Authorization": f"Bot {token}",
-        "User-Agent": f"DiscordBot (https://github.com/mounderfod/discobra 0.0.1)"
-    }) as session:
-        async with session.delete(url='https://discord.com/api/v10' + url) as r:
+    async def delete(self, url):
+        async with self.session.delete(url='https://discord.com/api/v10' + url) as r:
             data = await r.json()
             match r.status:
                 case 200:
