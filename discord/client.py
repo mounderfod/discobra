@@ -14,20 +14,22 @@ from .utils.rest import RESTClient
 from .intents import Intents, get_number
 from .user import User
 
+
 class GatewayEvents(IntEnum):
-    DISPATCH           = 0
-    HEARTBEAT          = 1
-    IDENTIFY           = 2
-    PRESENCE           = 3
-    VOICE_STATE        = 4
-    VOICE_PING         = 5
-    RESUME             = 6
-    RECONNECT          = 7
-    REQUEST_MEMBERS    = 8
+    DISPATCH = 0
+    HEARTBEAT = 1
+    IDENTIFY = 2
+    PRESENCE = 3
+    VOICE_STATE = 4
+    VOICE_PING = 5
+    RESUME = 6
+    RECONNECT = 7
+    REQUEST_MEMBERS = 8
     INVALIDATE_SESSION = 9
-    HELLO              = 10
-    HEARTBEAT_ACK      = 11
-    GUILD_SYNC         = 12
+    HELLO = 10
+    HEARTBEAT_ACK = 11
+    GUILD_SYNC = 12
+
 
 class Client:
     """
@@ -77,7 +79,7 @@ class Client:
             threading.Thread(target=self.loop.run_forever).start()
             while True:
                 await self.poll_event()
-    
+
     async def send(self, data: dict):
         """
         Send data to the gateway.
@@ -86,7 +88,7 @@ class Client:
         - data: The data to send to the gateway.
         """
         await self.gateway.send(json.dumps(data))
-    
+
     async def recv(self, msg):
         """
         Receive data from the gateway.
@@ -126,7 +128,6 @@ class Client:
 
         self.event_emitter.emit('on_' + event.lower())
 
-
     async def close(self):
         """
         Close the client.
@@ -137,7 +138,6 @@ class Client:
     async def poll_event(self):
         msg = await self.gateway.recv()
         await self.recv(msg)
-
 
     async def heartbeat(self, interval: int):
         """
@@ -172,7 +172,8 @@ class Client:
             }
         }
 
-    def event(self, coro: Optional[Callable[..., Coroutine[Any, Any, Any]]]=None, /) -> Optional[Callable[..., Coroutine[Any, Any, Any]]]:
+    def event(self, coro: Optional[Callable[..., Coroutine[Any, Any, Any]]] = None, /) -> Optional[
+        Callable[..., Coroutine[Any, Any, Any]]]:
         """
         Registers a coroutine to be called when an event is emitted.
 
