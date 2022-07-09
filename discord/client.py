@@ -16,18 +16,32 @@ from .user import User
 
 
 class GatewayEvents(IntEnum):
+    """
+    Contains constants for the gateway opcodes.
+    """
     DISPATCH = 0
+    """An event was dispatched."""
     HEARTBEAT = 1
+    """Sent at regular intervals by the client to keep the gateway connection alive."""
     IDENTIFY = 2
+    """Used to identify yourself with the token during the initial handshake."""
     PRESENCE = 3
+    """Used to update the client's presence."""
     VOICE_STATE = 4
+    """Used to join and leave voice channels."""
     VOICE_PING = 5
     RESUME = 6
+    """Used to resume a disconnected session."""
     RECONNECT = 7
+    """Used to reconnect to the session."""
     REQUEST_MEMBERS = 8
+    """Used to request information about guild members when there are too many for """
     INVALIDATE_SESSION = 9
+    """Means that the session is invalid. When this is received, you must reconnect and re-identify."""
     HELLO = 10
+    """Acknowledgement of gateway connection."""
     HEARTBEAT_ACK = 11
+    """Acknowledgement of gateway heartbeat."""
     GUILD_SYNC = 12
 
 
