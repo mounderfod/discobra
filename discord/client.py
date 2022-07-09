@@ -42,7 +42,6 @@ class Client:
         self.buffer = bytearray()
         self.inflator = zlib.decompressobj()
         self.heartbeat_interval: int = None
-        self.token: str = None
         self.ready: bool = False
 
     async def connect(self):
@@ -77,7 +76,7 @@ class Client:
 
         if opcode != GatewayEvents.DISPATCH.value:
             if opcode == GatewayEvents.RECONNECT.value:
-                await self.gateway.close()
+                return await self.close()
 
             if opcode == GatewayEvents.HELLO.value:
                 self.heartbeat_interval = data['heartbeat_interval']
@@ -125,7 +124,7 @@ class Client:
         identify = {
             "op": GatewayEvents.IDENTIFY,
             "d": {
-                "token": self.token,
+                "token": self._token,
                 "intents": self.code,
                 "properties": {
                     "os": sys.platform,
@@ -149,5 +148,5 @@ class Client:
         """
         Run the client.
         """
-        self.token = token
-        asyncio.run(self.connect(token, self.code))
+        self._token = token
+        asyncio.run(self.connect())
