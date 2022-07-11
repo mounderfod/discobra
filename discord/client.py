@@ -121,7 +121,7 @@ class Client:
             "op": 1,
             "d": None
         }
-        await self.gateway.send(json.dumps(heartbeat))
+        await self.send(heartbeat)
 
     async def identify(self):
         """
@@ -139,7 +139,7 @@ class Client:
                 }
             }
         }
-        await self.gateway.send(json.dumps(identify))
+        await self.send(identify)
 
     def event(self, coro: Optional[Callable[..., Coroutine[Any, Any, Any]]]=None, /) -> Optional[Callable[..., Coroutine[Any, Any, Any]]]:
         """
