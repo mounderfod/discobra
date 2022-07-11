@@ -24,6 +24,7 @@ def get_number(flags: list[Flags]):
         number += i.value
     return number
 
+
 def get_flags(number: int):
     flags = []
     while number != 0:
@@ -32,4 +33,3 @@ def get_flags(number: int):
                 flags.append(i)
                 number -= i.value
     return flags
-
