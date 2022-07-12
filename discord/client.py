@@ -44,6 +44,33 @@ class GatewayEvents(IntEnum):
     GUILD_SYNC = 12
 
 
+class ClientCache:
+    """
+    A cache for the client.
+    """
+    def __init__(self):
+        self.users = {}
+        self._user: User
+
+    def update_user(self, user: User):
+        self.users[user.id] = user
+
+    def get_user(self, id: str) -> Optional[User]:
+        """
+        Get a user from the cache.
+        """
+        return self.users.get(id)
+    
+    @property
+    def user(self) -> User:
+        """The cached `discord.user.User` associated with the client."""
+        return self._user
+
+    @user.setter
+    def user(self, user: User):
+        self._user = user
+
+
 class Client:
     """
     Represents a Discord client (i.e. a bot).
@@ -51,13 +78,21 @@ class Client:
     """
     _token: str
     rest_client: RESTClient
+    client_cache: ClientCache = ClientCache()
 
     @property
     async def user(self):
         """The `discord.user.User` associated with the client."""
         data = await self.rest_client.get('/users/@me')
-        return User(data)
+        user = User(data)
+        self.client_cache.user = user
+        return user
 
+    @property
+    def cache(self) -> ClientCache:
+        """The cache for the client."""
+        return self.client_cache
+    
     def __init__(self, intents: list[Intents]):
         self.gateway = None
         self.loop = asyncio.get_event_loop()
@@ -137,10 +172,83 @@ class Client:
 
         event = msg['t']
 
-        if event == 'READY':
-            print(data)
-
-        self.event_emitter.emit('on_' + event.lower())
+        match(event):
+            case 'READY':
+                self.ready = True
+                self.client_cache.user = User(data['user'])
+                return self.event_emitter.emit('on_ready')
+            case 'APPLICATION_COMMAND_PERMISSIONS_UPDATE':
+                return self.event_emitter.emit('on_application_command_permissions_update')
+            case 'CHANNEL_CREATE':
+                return self.event_emitter.emit('on_channel_create', data)
+            case 'CHANNEL_DELETE':
+                return self.event_emitter.emit('on_channel_delete', data)
+            case 'CHANNEL_UPDATE':
+                return self.event_emitter.emit('on_channel_update', data)
+            case 'CHANNEL_PINS_ACK':
+                return self.event_emitter.emit('on_channel_pins_ack', data)
+            case 'CHANNEL_PINS_UPDATE':
+                return self.event_emitter.emit('on_channel_pins_update', data)
+            case 'GUILD_CREATE':
+                return self.event_emitter.emit('on_guild_create', data)
+            case 'GUILD_DELETE':
+                return self.event_emitter.emit('on_guild_delete', data)
+            case 'GUILD_UPDATE':
+                return self.event_emitter.emit('on_guild_update', data)
+            case 'GUILD_BAN_ADD':
+                return self.event_emitter.emit('on_guild_ban_add', data)
+            case 'GUILD_BAN_REMOVE':
+                return self.event_emitter.emit('on_guild_ban_remove', data)
+            case 'GUILD_EMOJIS_UPDATE':
+                return self.event_emitter.emit('on_guild_emojis_update', data)
+            case 'GUILD_INTEGRATIONS_UPDATE':
+                return self.event_emitter.emit('on_guild_integrations_update', data)
+            case 'GUILD_MEMBER_ADD':
+                return self.event_emitter.emit('on_guild_member_add', data)
+            case 'GUILD_MEMBER_REMOVE':
+                return self.event_emitter.emit('on_guild_member_remove', data)
+            case 'GUILD_MEMBER_UPDATE':
+                return self.event_emitter.emit('on_guild_member_update', data)
+            case 'GUILD_MEMBERS_CHUNK':
+                return self.event_emitter.emit('on_guild_members_chunk', data)
+            case 'GUILD_ROLE_CREATE':
+                return self.event_emitter.emit('on_guild_role_create', data)
+            case 'GUILD_ROLE_DELETE':
+                return self.event_emitter.emit('on_guild_role_delete', data)
+            case 'GUILD_ROLE_UPDATE':
+                return self.event_emitter.emit('on_guild_role_update', data)
+            case 'GUILD_SYNC':
+                return self.event_emitter.emit('on_guild_sync', data)
+            case 'GUILD_MEMBERS_CHUNK':
+                return self.event_emitter.emit('on_guild_members_chunk', data)
+            case 'MESSAGE_CREATE':
+                return self.event_emitter.emit('on_message_create', data)
+            case 'MESSAGE_DELETE':
+                return self.event_emitter.emit('on_message_delete', data)
+            case 'MESSAGE_DELETE_BULK':
+                return self.event_emitter.emit('on_message_delete_bulk', data)
+            case 'MESSAGE_UPDATE':
+                return self.event_emitter.emit('on_message_update', data)
+            case 'MESSAGE_REACTION_ADD':
+                return self.event_emitter.emit('on_message_reaction_add', data)
+            case 'MESSAGE_REACTION_REMOVE':
+                return self.event_emitter.emit('on_message_reaction_remove', data)
+            case 'MESSAGE_REACTION_REMOVE_ALL':
+                return self.event_emitter.emit('on_message_reaction_remove_all', data)
+            case 'MESSAGE_REACTION_REMOVE_EMOJI':
+                return self.event_emitter.emit('on_message_reaction_remove_emoji', data)
+            case 'PRESENCE_UPDATE':
+                return self.event_emitter.emit('on_presence_update', data)
+            case 'TYPING_START':
+                return self.event_emitter.emit('on_typing_start', data)
+            case 'USER_UPDATE':
+                return self.event_emitter.emit('on_user_update', data)
+            case 'VOICE_STATE_UPDATE':
+                return self.event_emitter.emit('on_voice_state_update', data)
+            case 'VOICE_SERVER_UPDATE':
+                return self.event_emitter.emit('on_voice_server_update', data)
+            case 'WEBHOOKS_UPDATE':
+                return self.event_emitter.emit('on_webhooks_update', data)
 
     async def close(self):
         """

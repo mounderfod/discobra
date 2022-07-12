@@ -3,7 +3,7 @@ from discord.premium_type import PremiumType
 
 
 class User:
-    _id: int
+    _id: str
     _username: str
     _discriminator: str
     _avatar: str
@@ -114,3 +114,6 @@ class User:
                 setattr(self, f"_{k}", PremiumType(data[k]))
             else:
                 setattr(self, f"_{k}", data[k])
+
+    def __repr__(self) -> str:
+        return f"<User id={self.id} username={self.username} discriminator={self.discriminator}>"
