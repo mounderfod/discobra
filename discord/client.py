@@ -50,6 +50,7 @@ class Client:
     You need to initialise one of these and then use `run()` with a token to login.
     """
     _token: str
+    rest_client: RESTClient
 
     @property
     async def user(self):
@@ -72,10 +73,6 @@ class Client:
         self.inflator = zlib.decompressobj()
         self.heartbeat_interval: int = None
         self.ready: bool = False
-        self.rest_client = RESTClient(self._token, aiohttp.ClientSession(headers={
-            "Authorization": f"Bot {self._token}",
-            "User-Agent": "DiscordBot (https://github.com/mounderfod/discobra 0.0.1)"
-        }))
 
     async def connect(self):
         """
@@ -86,7 +83,12 @@ class Client:
         - token: Your bot token.
         - intent_code: The number which represents the `discord.intents.Intents` being used.
         """
-        async with websockets.connect("wss://gateway.discord.gg/?v=10&encoding=json") as gateway:
+        timeout = aiohttp.ClientTimeout(total=60)
+        self.rest_client = RESTClient(self._token, aiohttp.ClientSession(headers={
+            "Authorization": f"Bot {self._token}",
+            "User-Agent": "DiscordBot (https://github.com/mounderfod/discobra 0.0.1)"
+        }, timeout=timeout))
+        async with self.rest_client.session.ws_connect("wss://gateway.discord.gg/?v=10&encoding=json") as gateway:
             self.gateway = gateway
             threading.Thread(target=self.loop.run_forever).start()
             while True:
@@ -99,7 +101,7 @@ class Client:
         **Parameters:**
         - data: The data to send to the gateway.
         """
-        await self.gateway.send(json.dumps(data))
+        await self.gateway.send_str(json.dumps(data))
 
     async def recv(self, msg):
         """
@@ -148,8 +150,13 @@ class Client:
         await self.gateway.close()
 
     async def poll_event(self):
-        msg = await self.gateway.recv()
-        await self.recv(msg)
+        async for msg in self.gateway:
+            if msg.type == aiohttp.WSMsgType.TEXT:
+                await self.recv(msg.data)
+            elif msg.type == aiohttp.WSMsgType.CLOSED:
+                break
+            elif msg.type == aiohttp.WSMsgType.ERROR:
+                break
 
     async def heartbeat(self, interval: int):
         """
@@ -206,4 +213,5 @@ class Client:
         - token: Your bot token. Do not share this with anyone!
         """
         self._token = token
+
         asyncio.run(self.connect())

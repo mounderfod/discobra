@@ -11,7 +11,14 @@ class RESTClient:
     """
     def __init__(self, token: str, session: aiohttp.ClientSession):
         self.token = token
-        self.session = session
+        self._session = session
+
+    @property
+    def session(self) -> aiohttp.ClientSession:
+        """
+        Returns the _session used by the client.
+        """
+        return self._session
 
     async def get(self, url: str):
         """
@@ -20,7 +27,7 @@ class RESTClient:
         **Parameters:**
         - url: The part of the request URL that goes after `https://discord.com/api/v10`
         """
-        async with self.session.get(url='https://discord.com/api/v10' + url) as r:
+        async with self._session.get(url='https://discord.com/api/v10' + url) as r:
             data = await r.json()
             match r.status:
                 case 200:
@@ -36,7 +43,7 @@ class RESTClient:
         - url: The part of the request URL that goes after `https://discord.com/api/v10`
         - data: The data to post.
         """
-        async with self.session.post(url='https://discord.com/api/v10' + url, data=data) as r:
+        async with self._session.post(url='https://discord.com/api/v10' + url, data=data) as r:
             data = await r.json()
             match r.status:
                 case 200 | 204 | 201:
@@ -52,7 +59,7 @@ class RESTClient:
         - url: The part of the request URL that goes after `https://discord.com/api/v10`
         - data: The data to patch.
         """
-        async with self.session.patch(url='https://discord.com/api/v10' + url, data=data) as res:
+        async with self._session.patch(url='https://discord.com/api/v10' + url, data=data) as res:
             data = await res.json()
             match res.status:
                 case 200 | 204:
@@ -67,7 +74,7 @@ class RESTClient:
         **Parameters:**
         - url: The part of the request URL that goes after `https://discord.com/api/v10`
         """
-        async with self.session.delete(url='https://discord.com/api/v10' + url) as r:
+        async with self._session.delete(url='https://discord.com/api/v10' + url) as r:
             data = await r.json()
             match r.status:
                 case 200:
