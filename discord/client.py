@@ -80,7 +80,6 @@ class Client:
     rest_client: RESTClient
     client_cache: ClientCache = ClientCache()
 
-    @property
     async def user(self):
         """The `discord.user.User` associated with the client."""
         data = await self.rest_client.get('/users/@me')
@@ -172,6 +171,8 @@ class Client:
 
         event = msg['t']
 
+        print(f"{event}")
+
         match(event):
             case 'READY':
                 self.ready = True
@@ -259,7 +260,7 @@ class Client:
 
     async def poll_event(self):
         async for msg in self.gateway:
-            if msg.type == aiohttp.WSMsgType.TEXT:
+            if msg.type in (aiohttp.WSMsgType.TEXT, aiohttp.WSMsgType.BINARY):
                 await self.recv(msg.data)
             elif msg.type == aiohttp.WSMsgType.CLOSED:
                 break
