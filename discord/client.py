@@ -9,6 +9,8 @@ import zlib
 import aiohttp
 import websockets
 
+from discord.guild import Guild
+
 from .utils import EventEmitter, RESTClient
 from .intents import Intents, get_number
 from .user import User
@@ -50,6 +52,7 @@ class ClientCache:
     """
     def __init__(self):
         self.users = {}
+        self._guilds = {}
         self._user: User
 
     def update_user(self, user: User):
@@ -60,6 +63,22 @@ class ClientCache:
         Get a user from the cache.
         """
         return self.users.get(id)
+
+    def get_guild(self, id: str) -> Optional[Guild]:
+        """
+        Get a guild from the cache.
+        """
+        return self._guilds.get(id)
+
+    def update_guild(self, guild: Guild):
+        self._guilds[guild.id] = guild
+    
+    @property
+    def guilds(self) -> list:
+        """
+        Get a list of all guilds in the cache.
+        """
+        return list(self._guilds.values())
     
     @property
     def user(self) -> User:
@@ -191,7 +210,8 @@ class Client:
             case 'CHANNEL_PINS_UPDATE':
                 return self.event_emitter.emit('on_channel_pins_update', data)
             case 'GUILD_CREATE':
-                return self.event_emitter.emit('on_guild_create', data)
+                self.client_cache.update_guild(Guild(data))
+                return self.event_emitter.emit('on_guild_create', Guild(data))
             case 'GUILD_DELETE':
                 return self.event_emitter.emit('on_guild_delete', data)
             case 'GUILD_UPDATE':
@@ -288,7 +308,7 @@ class Client:
         Identify the client.
         """
         identify = {
-            "op": GatewayEvents.IDENTIFY,
+            "op": GatewayEvents.IDENTIFY.value,
             "d": {
                 "token": self._token,
                 "intents": self.code,
