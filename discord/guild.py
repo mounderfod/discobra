@@ -1,4 +1,5 @@
 from discord.user import User
+from .channels import AnnouncementChannel, CategoryChannel, ChannelType, GuildChannel, TextChannel, VoiceChannel
 
 class GuildMember:
     """
@@ -56,7 +57,6 @@ class GuildRole:
     def __repr__(self) -> str:
         return f"<GuildRole id={self._id} name={self._name}>"
     
-
 class GuildEmoji:
     _id: str
     _name: str
@@ -78,6 +78,9 @@ class GuildEmoji:
     def __repr__(self) -> str:
         return f"<GuildEmoji id={self._id} name={self._name}>"
 
+class GuildSticker:
+    pass
+
 class Guild:
     _id: str
     _name: str
@@ -93,7 +96,7 @@ class Guild:
     _region: str
     _voice_states: list
     _members: list[GuildMember]
-    _channels: list
+    _channels: list[GuildChannel]
     _threads: list
     _afk_channel_id: str
     _afk_timeout: int
@@ -147,7 +150,7 @@ class Guild:
         return self._roles
 
     @property
-    def channels(self) -> list:
+    def channels(self) -> list[GuildChannel]:
         return self._channels
     
     @property
@@ -167,6 +170,20 @@ class Guild:
                     self._emojis = [GuildEmoji(emoji) for emoji in value]
                 case 'members':
                     self._members = [GuildMember(member) for member in value]
+                case 'channels':
+                    channels = []
+                    for channel in value:
+                        if channel['type'] == ChannelType.GUILD_TEXT:
+                            channels.append(TextChannel(channel, self))
+                        elif channel['type'] == ChannelType.GUILD_VOICE:
+                            channels.append(VoiceChannel(channel, self))
+                        elif channel['type'] == ChannelType.GUILD_CATEGORY:
+                            channels.append(CategoryChannel(channel, self))
+                        elif channel['type'] == ChannelType.GUILD_NEWS:
+                            channels.append(AnnouncementChannel(channel, self))
+                        else:
+                            channels.append(GuildChannel(channel, self))
+                    self._channels = channels
                 case 'welcome_screen':
                     self._welcome_screen = value
                 case 'stickers':

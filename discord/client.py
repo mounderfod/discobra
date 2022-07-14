@@ -173,19 +173,19 @@ class Client:
         data = msg['d']
         sequence = msg['s']
 
-        if opcode != GatewayEvents.DISPATCH.value:
-            if opcode == GatewayEvents.RECONNECT.value:
+        if opcode != GatewayEvents.DISPATCH:
+            if opcode == GatewayEvents.RECONNECT:
                 return await self.close()
 
-            if opcode == GatewayEvents.HELLO.value:
+            if opcode == GatewayEvents.HELLO:
                 self.heartbeat_interval = data['heartbeat_interval']
                 asyncio.run_coroutine_threadsafe(self.heartbeat(self.heartbeat_interval), self.loop)
                 return await self.identify()
 
-            if opcode == GatewayEvents.HEARTBEAT_ACK.value:
+            if opcode == GatewayEvents.HEARTBEAT_ACK:
                 return await self.heartbeat(self.heartbeat_interval)
 
-            if opcode == GatewayEvents.HEARTBEAT.value:
+            if opcode == GatewayEvents.HEARTBEAT:
                 return await self.heartbeat(self.heartbeat_interval)
 
         event = msg['t']
